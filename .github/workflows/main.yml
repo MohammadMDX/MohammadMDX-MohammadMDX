@@ -1,0 +1,44 @@
+name: Generate Snake
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      # 1) Checkout repo
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2) Generate snake images in dist/
+      - name: Generate Snake (SVG + GIF)
+        uses: Platane/snk@v3
+        with:
+          github_user_name: MohammadMDX
+          outputs: |
+            dist/github-contribution-grid-snake.svg
+            dist/github-contribution-grid-snake.gif
+
+      # 3) Commit the generated files (force add even if dist/ is in .gitignore)
+      - name: Commit snake files
+        run: |
+          ls -R
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f dist/github-contribution-grid-snake.svg dist/github-contribution-grid-snake.gif
+          git commit -m "chore: update snake animation" || echo "Nothing to commit"
+
+      # 4) Push that commit to the `output` branch
+      - name: Push Snake to output branch
+        uses: ad-m/github-push-action@v0.8.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: output
+          force: true
